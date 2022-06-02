@@ -31,6 +31,10 @@ def product(n, term):
     162
     """
     "*** YOUR CODE HERE ***"
+    products, k = 1, 1
+    while k <= n:
+        products, k = products * term(k) , k + 1
+    return products
 
 
 def accumulate(combiner, base, n, term):
@@ -56,6 +60,10 @@ def accumulate(combiner, base, n, term):
     16
     """
     "*** YOUR CODE HERE ***"
+    result, k = base, 1
+    while k <= n:
+        result, k = combiner(result, term(k)), k + 1
+    return result
 
 def summation_using_accumulate(n, term):
     """Returns the sum of term(1) + ... + term(n). The implementation
@@ -72,6 +80,7 @@ def summation_using_accumulate(n, term):
     True
     """
     "*** YOUR CODE HERE ***"
+    return accumulate(add, 0, n, term)
 
 def product_using_accumulate(n, term):
     """An implementation of product using accumulate.
@@ -87,6 +96,7 @@ def product_using_accumulate(n, term):
     True
     """
     "*** YOUR CODE HERE ***"
+    return accumulate(mul, 1, n, term)
 
 
 def compose1(func1, func2):
@@ -110,7 +120,17 @@ def make_repeater(func, n):
     5
     """
     "*** YOUR CODE HERE ***"
+    # My solution
+    # k, func_nested = 1, identity
+    # while k <= n:
+        # func_nested = compose1(func_nested, func)
+        # k += 1
+    # return func_nested
+    # More challenging way: one return code use compose1 and accumulate func.
+    return lambda base: accumulate(lambda x,y : func(x), base, n, compose1(identity, func))
 
+
+    
 
 def zero(f):
     return lambda x: x
@@ -121,10 +141,17 @@ def successor(n):
 def one(f):
     """Church numeral 1: same as successor(zero)"""
     "*** YOUR CODE HERE ***"
+    # First way: user-defined function (explicit way)
+    # def g(x):
+        # return f(x)
+    # return g
+    # Another way : use lambda expression
+    return lambda x: f(x)
 
 def two(f):
     """Church numeral 2: same as successor(successor(zero))"""
     "*** YOUR CODE HERE ***"
+    return lambda x: f(f(x))
 
 three = successor(two)
 
@@ -141,6 +168,7 @@ def church_to_int(n):
     3
     """
     "*** YOUR CODE HERE ***"
+    return n(lambda x : x+1)(0)
 
 def add_church(m, n):
     """Return the Church numeral for m + n, for Church numerals m and n.
@@ -149,6 +177,14 @@ def add_church(m, n):
     5
     """
     "*** YOUR CODE HERE ***"
+    summation, m_int, n_int = m, church_to_int(m), church_to_int(n)
+    sum_int = m_int + n_int
+    while m_int <  sum_int:
+        summation = successor(summation)
+        m_int += 1
+    return summation
+
+
 
 def mul_church(m, n):
     """Return the Church numeral for m * n, for Church numerals m and n.
@@ -160,6 +196,16 @@ def mul_church(m, n):
     12
     """
     "*** YOUR CODE HERE ***"
+    # test condition zero later
+    products, m_int, n_int = m, church_to_int(m), church_to_int(n)
+    if (m_int or n_int) == 0: # pay attention to the operator precedence 
+        return zero
+    step = 1
+    while step < n_int:
+        products = add_church(products, m)
+        step += 1
+    return products
+
 
 def pow_church(m, n):
     """Return the Church numeral m ** n, for Church numerals m and n.
@@ -170,4 +216,18 @@ def pow_church(m, n):
     9
     """
     "*** YOUR CODE HERE ***"
+    power_value, m_int, n_int = m, church_to_int(m), church_to_int(n)
+    if m_int == 0:
+        return zero
+    elif n_int == 0:
+        return one
+    else:
+        step = 1
+        while step < n_int:
+            power_value = mul_church(power_value, m)
+            step += 1
+        return power_value
+    
+
+
 
